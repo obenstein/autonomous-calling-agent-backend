@@ -87,6 +87,7 @@ export class ResponseGenerator {
   async generateResponse(state: ConversationState): Promise<string> {
     try {
       // Format conversation history
+      console.log("Conversation history:", state.history);
       const conversationHistory = state.history.map(h => 
         `Customer: ${h.input.text}\nAgent: ${h.agentResponse}`
       ).join('\n\n');

@@ -83,7 +83,7 @@ export class LeadQualifier {
     // Check for disqualifying factors in conversation history and entities
     for (const factor of this.criteria.disqualifyingFactors) {
       // Check if factor appears in latest input
-      if (analysis.entities.some(e => e.value.toLowerCase().includes(factor.toLowerCase()))) {
+      if (analysis.entities.some(e => e.value && e.value.toLowerCase().includes(factor.toLowerCase()))) {
         return true;
       }
       
@@ -103,8 +103,9 @@ export class LeadQualifier {
     const callBackPhrases = ['call back', 'call later', 'another time', 'not now', 'busy'];
     
     return analysis.entities.some(e => 
-      callBackPhrases.some(phrase => e.value.toLowerCase().includes(phrase))
+      e.value && callBackPhrases.some(phrase => e.value.toLowerCase().includes(phrase))
     );
+    
   }
   
   private needsHumanFollowup(state: ConversationState, analysis: AnalysisResult): boolean {

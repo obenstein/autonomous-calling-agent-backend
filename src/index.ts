@@ -14,6 +14,10 @@ dotenv.config();
 
 // Create Express app for handling webhooks
 const app = express();
+app.use((req, _res, next) => {
+  console.log(`${new Date().toISOString()}  ▶️  ${req.method} ${req.url}`);
+  next();
+});
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
@@ -39,13 +43,14 @@ app.post(
     '/api/calls',
     async (req: Request, res: Response): Promise<void> => {
       const { phoneNumber } = req.body;
+      console.log('▶️  /api/calls hit with', req.body);
       if (!phoneNumber) {
         res.status(400).json({ error: 'Phone number is required' });
         return;
       }
   
       let callId: string;
-      try {
+      try { 
         callId = await telephonyService.initiateCall(phoneNumber);
       } catch (err) {
         console.error('Error initiating call:', err);
@@ -56,7 +61,7 @@ app.post(
       // Create and store the manager
       const cm = new ConversationManager(callId, phoneNumber, agentConfig);
       activeConversations.set(callId, cm);
-  
+      
       // RESPOND IMMEDIATELY
       res.status(201).json({ callId });
   
@@ -65,13 +70,12 @@ app.post(
         try {
           // empty text triggers your “greeting” logic
           const intro = await cm.processCustomerInput({
-            text: `Hey, what's up?`,
+            text: `Hey, I am Obaid. I am looking for car insurance quotes.`,
             timestamp: new Date(),
             callId,
           });
-  
-          // wait a bit to ensure the call is actually in-progress
-          await new Promise((r) => setTimeout(r, 2000));
+          console.log({intro})          // wait a bit to ensure the call is actually in-progress
+          await new Promise((r) => setTimeout(r, 4000));
   
           await telephonyService.speak(callId, intro);
         } catch (bgErr) {

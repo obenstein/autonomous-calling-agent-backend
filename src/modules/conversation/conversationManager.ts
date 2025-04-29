@@ -43,14 +43,13 @@ import {
     async processCustomerInput(input: CustomerInput): Promise<string> {
       // Analyze customer input
       const analysis = await this.sentimentAnalyzer.analyze(input);
-      console.log(`analysis: ${analysis}`);
       
       // Update conversation state based on analysis
       this.updateState(input, analysis);
       
       // Determine next action based on updated state
       const agentResponse = await this.responseGenerator.generateResponse(this.state);
-      
+      console.log("🤖 Agent response:", agentResponse);
       // Add response to history
       this.state.history.push({
         input,

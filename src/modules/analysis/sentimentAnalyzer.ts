@@ -15,8 +15,7 @@ export class SentimentAnalyzer {
     });
 
     const promptTemplate = new PromptTemplate({
-      template: `
-      Analyze the following customer response during a cold call. 
+      template: `Analyze the following customer response during a cold call.
       Customer input: "{input}"
       
       Return a JSON object with the following fields:
@@ -37,38 +36,26 @@ export class SentimentAnalyzer {
   }
 
   async analyze(input: CustomerInput): Promise<AnalysisResult> {
+    const result = await this.llmChain.call({ input: input.text });
+    let raw = result.analysis?.trim() ?? "";
+    console.log("🔍 LLM raw output:", raw);
+  
+    // Remove ```json fences if they slipped through
+    raw = raw.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim();
+  
+    // Try to pinpoint the JSON object by locating the first { and last }
+    const start = raw.indexOf("{");
+    const end   = raw.lastIndexOf("}");
+    if (start !== -1 && end !== -1) {
+      raw = raw.slice(start, end + 1);
+    }
+  
+    let parsed: any;
     try {
-      const result = await this.llmChain.call({ input: input.text });
-      const raw = result.analysis;
-      let parsed: any;
-  
-      try {
-        parsed = JSON.parse(raw);
-      } catch (parseErr) {
-        console.error(
-          '⚠️  Failed to parse LLM output as JSON:',
-          raw,
-          parseErr
-        );
-        // fallback
-        return {
-          input,
-          sentiment: Sentiment.NEUTRAL,
-          intent: Intent.OTHER,
-          entities: [],
-          confidenceScore: 0.5,
-        };
-      }
-  
-      return {
-        input,
-        sentiment: parsed.sentiment as Sentiment,
-        intent: parsed.intent as Intent,
-        entities: parsed.entities,
-        confidenceScore: parsed.confidenceScore,
-      };
-    } catch (err) {
-      console.error('Error during sentiment analysis:', err);
+      parsed = JSON.parse(raw);
+    } catch (parseErr) {
+      console.error("❌ Failed to parse JSON:\n", raw, parseErr);
+      // fallback
       return {
         input,
         sentiment: Sentiment.NEUTRAL,
@@ -77,6 +64,18 @@ export class SentimentAnalyzer {
         confidenceScore: 0.5,
       };
     }
+  
+    console.log("✅ Parsed analysis:", parsed);
+  
+    return {
+      input,
+      sentiment: parsed.sentiment as Sentiment,
+      intent: parsed.intent as Intent,
+      entities: parsed.entities,
+      confidenceScore: parsed.confidenceScore,
+    };
   }
+  
+  
   
 }

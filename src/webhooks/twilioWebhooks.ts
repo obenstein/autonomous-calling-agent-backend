@@ -1,11 +1,12 @@
 import express from 'express';
 const VoiceResponse= require('twilio').twiml.VoiceResponse;
 const router = express.Router();
+const BASE_URL = "https://daa5-111-88-88-249.ngrok-free.app/twiml";
 
 // Starting a call
-router.post('/twiml/start', (req, res) => {
+router.post('/start', (req, res) => {
   const twiml = new VoiceResponse();
-  
+
   // You can customize this initial greeting
   twiml.say({
     voice: 'Polly.Amy-Neural', // Use a neural voice for better quality
@@ -13,14 +14,14 @@ router.post('/twiml/start', (req, res) => {
   }, 'Hello! This is a call from your AI agent system.');
   
   // After greeting, we'll listen for input
-  twiml.redirect(`/twiml/listen?callId=${req.query.callId}`);
+  twiml.redirect(`${BASE_URL}/listen?callId=${req.query.callId}`);
   
-  res.type('text/xml');
-  res.send(twiml.toString());
+  res.type('text/xml').send(twiml.toString());  
+  console.log("xml here", twiml.toString());
 });
 
 // Speaking to the caller
-router.post('/twiml/say', (req, res) => {
+router.post('/say', (req, res) => {
   const twiml = new VoiceResponse();
   const text = req.query.text as string;
   const callId = req.query.callId as string;
@@ -31,14 +32,14 @@ router.post('/twiml/say', (req, res) => {
   }, text);
   
   // After speaking, listen for response
-  twiml.redirect(`/twiml/listen?callId=${callId}`);
+  twiml.redirect(`${BASE_URL}/listen?callId=${callId}`);
   
   res.type('text/xml');
   res.send(twiml.toString());
 });
 
 // Listening to the caller
-router.post('/twiml/listen', (req, res) => {
+router.post('/listen', (req, res) => {
   const twiml = new VoiceResponse();
   const callId = req.query.callId as string;
   
@@ -49,7 +50,7 @@ router.post('/twiml/listen', (req, res) => {
     language: 'en-US',
     enhanced: 'true', // Use enhanced speech recognition
     actionOnEmptyResult: 'true',
-    action: `/speech-result?callId=${callId}`,
+    action: `${BASE_URL}/speech-result?callId=${callId}`,
     method: 'POST'
   });
   
@@ -57,7 +58,7 @@ router.post('/twiml/listen', (req, res) => {
   // gather.say('I\'m listening...');
   
   // If no input is received, we can specify a timeout action
-  twiml.redirect(`/twiml/timeout?callId=${callId}`);
+  twiml.redirect(`${BASE_URL}/timeout?callId=${callId}`);
   
   res.type('text/xml');
   res.send(twiml.toString());
@@ -79,21 +80,21 @@ router.post('/speech-result', (req, res) => {
     language: 'en-US'
   }, `I heard you say: ${speechResult}`);
   
-  twiml.redirect(`/twiml/listen?callId=${callId}`);
+  twiml.redirect(`${BASE_URL}/listen?callId=${callId}`);
   
   res.type('text/xml');
   res.send(twiml.toString());
 });
 
 // Handle timeout (no speech detected)
-router.post('/twiml/timeout', (req, res) => {
+router.post('/timeout', (req, res) => {
   const twiml = new VoiceResponse();
   twiml.say({
     voice: 'Polly.Amy-Neural',
     language: 'en-US'
   }, 'I didn\'t hear anything. Let me know if you need assistance.');
   
-  twiml.redirect(`/twiml/listen?callId=${req.query.callId}`);
+  twiml.redirect(`${BASE_URL}/listen?callId=${req.query.callId}`);
   
   res.type('text/xml');
   res.send(twiml.toString());
