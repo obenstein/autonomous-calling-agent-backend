@@ -145,4 +145,30 @@ import {
     public getState(): ConversationState {
       return this.state;
     }
+    public async startConversation(): Promise<void> {
+      try {
+        const intro = await this.processCustomerInput({
+          text: '', 
+          timestamp: new Date(),
+          callId: this.state.callId
+        });
+        // emit an event so TelephonyService can speak
+        this.emitSpeak(intro);
+      } catch (err) {
+        console.error('Failed to start conversation:', err);
+      }
+    }
+    public handleNoAnswerOrBusy(status: string) {
+      console.warn(`Call ${this.state.callId} ended with status ${status}`);
+      this.state.leadStatus = LeadStatus.UNQUALIFIED;
+      // TODO: persist this outcome to your DB
+    }
+    private emitSpeak(text: string) {
+      // You could also @Inject TelephonyService, but here:
+      ConversationManager.emitter.emit(
+        `speak:${this.state.callId}`, text
+      );
+    }
+    public static emitter = new (require('events').EventEmitter)();
+
   }

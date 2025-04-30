@@ -8,16 +8,15 @@ import * as dotenv from 'dotenv';
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import type { Request, Response } from 'express';
+import bodyParser from 'body-parser';
 
 // Load environment variables
 dotenv.config();
 
 // Create Express app for handling webhooks
 const app = express();
-app.use((req, _res, next) => {
-  console.log(`${new Date().toISOString()}  ▶️  ${req.method} ${req.url}`);
-  next();
-});
+app.use(bodyParser.urlencoded({ extended: false }));
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
@@ -39,11 +38,32 @@ const activeConversations = new Map<string, ConversationManager>();
 const agentConfig = getInsuranceAgentConfig(process.env.COMPANY_NAME || 'InsureCo');
 
 // Handles new outbound call requests
+app.post('/twiml/status-callback', (req, res) => {
+  
+  console.log(req.body);
+  const { CallSid, CallStatus } = req.body;
+
+  const cm = activeConversations.get(CallSid);
+  if (!cm) {
+    res.sendStatus(404);
+    return;
+  }
+
+  if (CallStatus === 'answered') {
+    cm.startConversation();
+  } else if (CallStatus === 'busy' || CallStatus === 'no-answer') {
+    cm.handleNoAnswerOrBusy(CallStatus);
+  } else if (CallStatus === 'completed') {
+    activeConversations.delete(CallSid);
+  }
+
+  res.sendStatus(200);
+});
+
 app.post(
     '/api/calls',
     async (req: Request, res: Response): Promise<void> => {
       const { phoneNumber } = req.body;
-      console.log('▶️  /api/calls hit with', req.body);
       if (!phoneNumber) {
         res.status(400).json({ error: 'Phone number is required' });
         return;
@@ -51,7 +71,7 @@ app.post(
   
       let callId: string;
       try { 
-        callId = await telephonyService.initiateCall(phoneNumber);
+        callId = await telephonyService.makeCall(phoneNumber);
       } catch (err) {
         console.error('Error initiating call:', err);
         res.status(500).json({ error: 'Failed to initiate call' });
@@ -66,22 +86,22 @@ app.post(
       res.status(201).json({ callId });
   
       // --- now do the intro in the background ---
-      (async () => {
-        try {
-          // empty text triggers your “greeting” logic
-          const intro = await cm.processCustomerInput({
-            text: `Hey, I am Obaid. I am looking for car insurance quotes.`,
-            timestamp: new Date(),
-            callId,
-          });
-          console.log({intro})          // wait a bit to ensure the call is actually in-progress
-          await new Promise((r) => setTimeout(r, 4000));
+      // (async () => {
+      //   try {
+      //     // empty text triggers your “greeting” logic
+      //     const intro = await cm.processCustomerInput({
+      //       text: ``,
+      //       timestamp: new Date(),
+      //       callId,
+      //     });
+      //     console.log({intro})          // wait a bit to ensure the call is actually in-progress
+      //     await new Promise((r) => setTimeout(r, 4000));
   
-          await telephonyService.speak(callId, intro);
-        } catch (bgErr) {
-          console.error('🔥 Background intro error:', bgErr);
-        }
-      })();
+      //     await telephonyService.speak(callId, intro);
+      //   } catch (bgErr) {
+      //     console.error('🔥 Background intro error:', bgErr);
+      //   }
+      // })();
     }
   );
   
@@ -168,6 +188,7 @@ function storeLeadInformation(state: any) {
   
   // TODO: Implement actual storage logic
 }
+
 
 // Start server
 app.listen(PORT, () => {

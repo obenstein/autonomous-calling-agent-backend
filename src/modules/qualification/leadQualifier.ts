@@ -124,9 +124,9 @@ export class LeadQualifier {
     // Check for explicit request for human
     const humanRequestPhrases = ['speak to a person', 'real person', 'human', 'manager', 'supervisor', 'representative'];
     
-    if (humanRequestPhrases.some(phrase => analysis.input.text.toLowerCase().includes(phrase))) {
-      return true;
-    }
+    // if (humanRequestPhrases.some(phrase => analysis.input.text.toLowerCase().includes(phrase))) {
+    //   return true;
+    // }
     
     // Check for very low confidence scores
     if (analysis.confidenceScore < 0.4) {

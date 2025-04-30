@@ -19,9 +19,11 @@
         const call = await this.client.calls.create({
         to: phoneNumber,
         from: this.twilioPhoneNumber,
-        url: `${this.baseUrl}/twiml/start?appSid=${this.twimlAppSid}`,
+        url: `${this.baseUrl}/twiml/start`,
+        statusCallback: `${this.baseUrl}/twiml/status-callback`,
+        statusCallbackEvent: ['initiated','ringing','answered','completed'],
+        statusCallbackMethod: 'POST',
         });
-        
         return call.sid;
     }
     
