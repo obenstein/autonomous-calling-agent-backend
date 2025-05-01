@@ -38,6 +38,23 @@ export class TelephonyService extends EventEmitter {
         }
       }
     );
+    ConversationManager.emitter.on(
+      "playAudio:*",
+      async (callId: string, audioFile: string) => {
+        if (!this.activeCallIds.has(callId)) return;
+        try {
+          const audioUrl = `${this.baseUrl}/twiml/play?audio=${encodeURIComponent(
+            audioFile
+          )}&callId=${callId}`;
+    
+          await this.client.calls(callId).update({ url: audioUrl });
+        } catch (err) {
+          console.error("Error playing audio:", err);
+        }
+      }
+    );
+    
+    
 
     this.provider = provider;
 

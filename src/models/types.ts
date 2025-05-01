@@ -11,6 +11,9 @@ export interface CustomerInput {
     entities: Entity[];
     confidenceScore: number;
   }
+export interface AnalysisResultForAudio{
+  nextActionCategory: string;
+}
   
   export enum Sentiment {
     POSITIVE = 'POSITIVE',
@@ -48,7 +51,7 @@ export interface CustomerInput {
     history: {
       input: CustomerInput;
       analysis: AnalysisResult;
-      agentResponse: string;
+      // agentResponse: string;
     }[];
     currentStage: ConversationStage;
     leadStatus: LeadStatus;

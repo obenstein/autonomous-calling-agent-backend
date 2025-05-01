@@ -84,34 +84,34 @@ export class ResponseGenerator {
     });
   }
 
-  async generateResponse(state: ConversationState): Promise<string> {
-    try {
-      // Format conversation history
-      console.log("Conversation history:", state.history);
-      const conversationHistory = state.history.map(h => 
-        `Customer: ${h.input.text}\nAgent: ${h.agentResponse}`
-      ).join('\n\n');
+  // async generateResponse(state: ConversationState): Promise<string> {
+  //   try {
+  //     // Format conversation history
+  //     console.log("Conversation history:", state.history);
+  //     const conversationHistory = state.history.map(h => 
+  //       `Customer: ${h.input.text}\nAgent: ${h.agentResponse}`
+  //     ).join('\n\n');
       
-      // Generate response using LLM
-      const result = await this.llmChain.call({
-        stage: state.currentStage,
-        nextAction: state.nextAction,
-        customerName: state.customer.name || "there",
-        conversationHistory
-      });
+  //     // Generate response using LLM
+  //     const result = await this.llmChain.call({
+  //       stage: state.currentStage,
+  //       nextAction: state.nextAction,
+  //       customerName: state.customer.name || "there",
+  //       conversationHistory
+  //     });
       
-      return result.response;
-    } catch (error) {
-      console.error('Error generating response:', error);
+  //     return result.response;
+  //   } catch (error) {
+  //     console.error('Error generating response:', error);
       
-      // Fallback to default responses
-      const fallbackResponses = this.defaultResponses[state.nextAction];
-      if (fallbackResponses && fallbackResponses.length > 0) {
-        const randomIndex = Math.floor(Math.random() * fallbackResponses.length);
-        return fallbackResponses[randomIndex];
-      }
+  //     // Fallback to default responses
+  //     const fallbackResponses = this.defaultResponses[state.nextAction];
+  //     if (fallbackResponses && fallbackResponses.length > 0) {
+  //       const randomIndex = Math.floor(Math.random() * fallbackResponses.length);
+  //       return fallbackResponses[randomIndex];
+  //     }
       
-      return `I apologize, but I'm having trouble with my system. Would it be alright if I have someone call you back?`;
-    }
-  }
+  //     return `I apologize, but I'm having trouble with my system. Would it be alright if I have someone call you back?`;
+  //   }
+  // }
 }

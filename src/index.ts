@@ -9,13 +9,20 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import type { Request, Response } from 'express';
 import bodyParser from 'body-parser';
+import path from 'path';
 
 // Load environment variables
 dotenv.config();
+process.on('exit', (code) => {
+  console.log(`Process is about to exit with code: ${code}`);
+  console.trace(); // This will show the stack trace
+});
 
 // Create Express app for handling webhooks
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use("/audio", express.static(path.join(__dirname, "public/audio")));
+app.use(express.urlencoded({ extended: true }));
 
 app.use(express.json());
 
@@ -131,7 +138,7 @@ app.post('/api/calls/:callId/customerSpeech', async (req: Request, res: Response
       };
   
       const agentResponse = await conversationManager.processCustomerInput(customerInput);
-  
+      
       // Speak the response
       await telephonyService.speak(callId, agentResponse);
   
