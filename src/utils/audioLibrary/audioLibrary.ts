@@ -2,7 +2,7 @@ import path from 'path';
 export const TERMINAL_STEPS = ['respect_rejection', 'thank_and_close'];
 
 export const audioLibrary: Record<string, string> = {
-    'introduce': 'intro.mp3',
+    'introduce': 'introduction.mp3',
     'qualify': 'qualify_questions.mp3',
     'address_objection': 'objection_handling.mp3',
     'confirm_interest': 'confirm_interest.mp3',

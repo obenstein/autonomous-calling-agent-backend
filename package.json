@@ -5,6 +5,7 @@
   "dependencies": {
     "@langchain/community": "^0.3.41",
     "@langchain/core": "^0.3.49",
+    "compromise": "^14.14.4",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "langchain": "^0.3.24",

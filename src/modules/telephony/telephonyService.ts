@@ -97,6 +97,24 @@ export class TelephonyService extends EventEmitter {
       }
     }
   }
+  async play(callId: string, audioFile: string): Promise<void> {
+    const url = `${this.baseUrl}/twiml/play?audio=${encodeURIComponent(
+      audioFile
+    )}&callId=${callId}`;
+  
+    try {
+      await this.client.calls(callId).update({ url });
+    } catch (err: any) {
+      if (err.code === 21220) {
+        console.warn("Call not in-progress yet, retrying in 1s…");
+        await new Promise((r) => setTimeout(r, 1000));
+        await this.client.calls(callId).update({ url });
+      } else {
+        throw err;
+      }
+    }
+  }
+  
 
   async endCall(callId: string): Promise<void> {
     if (!this.activeCallIds.has(callId)) {

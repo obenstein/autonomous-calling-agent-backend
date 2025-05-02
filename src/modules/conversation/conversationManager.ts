@@ -44,7 +44,6 @@ export class ConversationManager {
     // Analyze customer input
     // const analysis = await this.sentimentAnalyzer.analyze(input);
     const category = this.categorizeInput(input);
-    console.log("🔍 Category:", category);
     // Update conversation state based on analysis
     this.updateState(category);
 
@@ -59,7 +58,9 @@ export class ConversationManager {
     if (audioClip) {
       console.log({audioClip});
       this.emitAudio(audioClip);
-    } else {
+      return audioClip; // return the audio clip path
+    } else 
+    {
       this.emitSpeak(input.text); // fallback to TTS
     }
     return input.text;

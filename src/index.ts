@@ -92,23 +92,6 @@ app.post(
       // RESPOND IMMEDIATELY
       res.status(201).json({ callId });
   
-      // --- now do the intro in the background ---
-      // (async () => {
-      //   try {
-      //     // empty text triggers your “greeting” logic
-      //     const intro = await cm.processCustomerInput({
-      //       text: ``,
-      //       timestamp: new Date(),
-      //       callId,
-      //     });
-      //     console.log({intro})          // wait a bit to ensure the call is actually in-progress
-      //     await new Promise((r) => setTimeout(r, 4000));
-  
-      //     await telephonyService.speak(callId, intro);
-      //   } catch (bgErr) {
-      //     console.error('🔥 Background intro error:', bgErr);
-      //   }
-      // })();
     }
   );
   
@@ -140,7 +123,7 @@ app.post('/api/calls/:callId/customerSpeech', async (req: Request, res: Response
       const agentResponse = await conversationManager.processCustomerInput(customerInput);
       
       // Speak the response
-      await telephonyService.speak(callId, agentResponse);
+      await telephonyService.play(callId, agentResponse);
   
       // Check if the conversation should end
       const state = conversationManager.getState();

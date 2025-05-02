@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { ConversationManager } from "../modules/conversation/conversationManager";
 import { getInsuranceAgentConfig } from "../config/agentConfig";
+import path from "path";
 const VoiceResponse = require("twilio").twiml.VoiceResponse;
 const router = express.Router();
 dotenv.config();
@@ -109,14 +110,12 @@ router.post("/speech-result", async (req, res) => {
 
   // For demo purposes, just echo back what was heard
   const twiml = new VoiceResponse();
-  twiml.say(
-    {
-      voice: "Polly.Amy-Neural",
-      language: "en-US",
-    },
-    `${agentResponse}`
-  );
-
+  if(agentResponse) {
+    const audioFileName = path.basename(agentResponse);
+    const audioUrl = `${process.env.WEBHOOK_BASE_URL}/audio/${audioFileName}`;
+    console.log(`Playing audio URL: ${audioUrl}`);
+    twiml.play(audioUrl);
+  }
   twiml.redirect(`${BASE_URL}/listen?callId=${callId}`);
 
   res.type("text/xml");
@@ -148,5 +147,13 @@ router.get("/twiml/play", (req, res) => {
   res.type("text/xml");
   res.send(response.toString());
 });
+router.post('/twiml/play', (req, res) => {
+  const audioUrl = req.query.audio;
+  const twiml = new VoiceResponse();
+  twiml.play(audioUrl);
+  res.type('text/xml');
+  res.send(twiml.toString());
+});
+
 
 export default router;
